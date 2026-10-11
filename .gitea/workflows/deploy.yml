@@ -95,7 +95,7 @@ jobs:
       - name: Write list to server
         env:
           COMPOSES: ${{ needs.validate.outputs.composes }}
-          OUTPUT_FILE: ${{ vars.OUTPUT_FILE || '/opt/changed-composes.txt' }}
+          OUTPUT_FILE: ${{ vars.OUTPUT_FILE || '/opt/deploy/changed-composes.txt' }}
           SSH_HOST: ${{ vars.SSH_HOST }}
           SSH_USER: ${{ vars.SSH_USER }}
           SSH_PORT: ${{ vars.SSH_PORT }}
