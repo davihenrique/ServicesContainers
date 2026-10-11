@@ -1,7 +1,7 @@
 services:
   navidrome:
     image: docker.io/deluan/navidrome:latest
-    container_name: navidrome
+    container_name: navidrome2
     restart: always
     ports:
       - "4533:4533"
