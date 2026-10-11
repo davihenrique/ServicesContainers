@@ -1,3 +1,4 @@
+# Navidrome: music streaming server (library from Nextcloud)
 services:
   navidrome:
     image: docker.io/deluan/navidrome:latest
@@ -16,4 +17,3 @@ services:
       - ./data:/data:z
       - ./cache:/data/cache:z
       - "/srv/nextcloud/davi/files/Músicas:/music:ro"
-      
