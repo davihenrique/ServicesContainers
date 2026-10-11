@@ -19,6 +19,7 @@ jobs:
     outputs:
       yaml: ${{ steps.changes.outputs.yaml }}
       deploy: ${{ steps.changes.outputs.deploy }}
+      delete: ${{ steps.changes.outputs.delete }}
     steps:
       - name: Install dependencies
         run: apk add --no-cache git yamllint
@@ -59,11 +60,11 @@ jobs:
         if: steps.changes.outputs.yaml != ''
         run: sh .gitea/scripts/lint-yaml.sh ${{ steps.changes.outputs.yaml }}
 
-  # Copies the changed files to the server (push/manual only, never on PRs)
-  copy:
-    name: Copy files to server
+  # Syncs the changed and deleted files with the server (push/manual only, never on PRs)
+  sync:
+    name: Sync files to server
     needs: validate
-    if: github.event_name != 'pull_request' && needs.validate.outputs.deploy != ''
+    if: github.event_name != 'pull_request' && (needs.validate.outputs.deploy != '' || needs.validate.outputs.delete != '')
     runs-on: ubuntu-latest
     container:
       image: alpine:3.22
@@ -90,12 +91,13 @@ jobs:
           git checkout -q --detach FETCH_HEAD
           git config --unset http.extraHeader
 
-      - name: Copy files
+      - name: Sync files
         env:
           FILES: ${{ needs.validate.outputs.deploy }}
+          DELETE: ${{ needs.validate.outputs.delete }}
           DEST_DIR: ${{ vars.DEST_DIR || '/opt' }}
           SSH_HOST: ${{ vars.SSH_HOST }}
           SSH_USER: ${{ vars.SSH_USER }}
           SSH_PORT: ${{ vars.SSH_PORT }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: sh .gitea/scripts/copy-files.sh
+        run: sh .gitea/scripts/sync-files.sh
