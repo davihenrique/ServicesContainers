@@ -9,10 +9,8 @@ on:
 jobs:
   validate:
     name: Validate YAML
-    runs-on: ubuntu-latest
-    # Plain Alpine, no node: no actions (uses:) are used, shell only
-    container:
-      image: alpine:3.22
+    # Runner label "fedora" = registry.fedoraproject.org/fedora-minimal:44 (no node: shell only, no uses:)
+    runs-on: fedora
     defaults:
       run:
         shell: sh
@@ -23,7 +21,7 @@ jobs:
       removed: ${{ steps.changes.outputs.removed }}
     steps:
       - name: Install dependencies
-        run: apk add --no-cache git yamllint
+        run: dnf install -y -q --setopt=install_weak_deps=False git-core yamllint
 
       # Manual checkout (replaces actions/checkout, which needs node).
       # Kept inline because the scripts only exist after the checkout.
@@ -66,9 +64,8 @@ jobs:
     name: Deploy to server
     needs: validate
     if: github.event_name != 'pull_request' && (needs.validate.outputs.deploy != '' || needs.validate.outputs.delete != '')
-    runs-on: ubuntu-latest
-    container:
-      image: alpine:3.22
+    # Runner label "fedora" = registry.fedoraproject.org/fedora-minimal:44 (no node: shell only, no uses:)
+    runs-on: fedora
     defaults:
       run:
         shell: sh
@@ -84,7 +81,7 @@ jobs:
       PODMAN_SUDO: ${{ vars.PODMAN_SUDO }}
     steps:
       - name: Install dependencies
-        run: apk add --no-cache git openssh-client
+        run: dnf install -y -q --setopt=install_weak_deps=False git-core openssh-clients tar
 
       # Same checkout as the validate job, but shallow: the files of this commit are enough here
       - name: Checkout
