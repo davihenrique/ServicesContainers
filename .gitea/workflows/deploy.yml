@@ -60,9 +60,9 @@ jobs:
         if: steps.changes.outputs.yaml != ''
         run: sh .gitea/scripts/lint-yaml.sh ${{ steps.changes.outputs.yaml }}
 
-  # Syncs the changed and deleted files with the server (push/manual only, never on PRs)
-  sync:
-    name: Sync files to server
+  # Syncs the files with the server and recreates the changed services (push/manual only, never on PRs)
+  deploy:
+    name: Deploy to server
     needs: validate
     if: github.event_name != 'pull_request' && (needs.validate.outputs.deploy != '' || needs.validate.outputs.delete != '')
     runs-on: ubuntu-latest
@@ -71,6 +71,14 @@ jobs:
     defaults:
       run:
         shell: sh
+    env:
+      FILES: ${{ needs.validate.outputs.deploy }}
+      DELETE: ${{ needs.validate.outputs.delete }}
+      DEST_DIR: ${{ vars.DEST_DIR || '/opt' }}
+      SSH_HOST: ${{ vars.SSH_HOST }}
+      SSH_USER: ${{ vars.SSH_USER }}
+      SSH_PORT: ${{ vars.SSH_PORT }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
     steps:
       - name: Install dependencies
         run: apk add --no-cache git openssh-client
@@ -91,13 +99,12 @@ jobs:
           git checkout -q --detach FETCH_HEAD
           git config --unset http.extraHeader
 
+      # Before the sync: a deleted compose file can no longer stop its containers
+      - name: Stop removed services
+        run: sh .gitea/scripts/stop-removed.sh
+
       - name: Sync files
-        env:
-          FILES: ${{ needs.validate.outputs.deploy }}
-          DELETE: ${{ needs.validate.outputs.delete }}
-          DEST_DIR: ${{ vars.DEST_DIR || '/opt' }}
-          SSH_HOST: ${{ vars.SSH_HOST }}
-          SSH_USER: ${{ vars.SSH_USER }}
-          SSH_PORT: ${{ vars.SSH_PORT }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: sh .gitea/scripts/sync-files.sh
+
+      - name: Restart changed services
+        run: sh .gitea/scripts/restart-changed.sh
