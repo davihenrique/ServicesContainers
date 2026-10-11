@@ -17,8 +17,16 @@ set -e
 
 KEY_FILE=$(mktemp)
 trap 'rm -f "$KEY_FILE"' EXIT
-printf '%s\n' "$SSH_PRIVATE_KEY" > "$KEY_FILE"
+# Strip CRs in case the secret was pasted from Windows
+printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$KEY_FILE"
 chmod 600 "$KEY_FILE"
+
+# Show the matching public key, to compare with ~/.ssh/authorized_keys on the server
+if ! ssh-keygen -y -f "$KEY_FILE" > /dev/null 2>&1; then
+  echo "SSH_PRIVATE_KEY is not a valid private key (or has a passphrase)" >&2
+  exit 1
+fi
+echo "Using key: $(ssh-keygen -l -f "$KEY_FILE")"
 
 # One line per compose; empty when no compose changed
 printf '%s\n' $COMPOSES | sed '/^$/d' > list.txt
@@ -29,5 +37,7 @@ cat list.txt
 ssh -i "$KEY_FILE" \
   -p "${SSH_PORT:-22}" \
   -o StrictHostKeyChecking=accept-new \
+  -o BatchMode=yes \
+  -o IdentitiesOnly=yes \
   "$SSH_USER@$SSH_HOST" \
   "cat > '$OUTPUT_FILE.tmp' && mv '$OUTPUT_FILE.tmp' '$OUTPUT_FILE'" < list.txt
