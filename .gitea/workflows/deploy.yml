@@ -3,9 +3,7 @@ name: Deploy composes
 on:
   push:
     branches: [main]
-    paths: ["**.yml", "**.yaml"]
   pull_request:
-    paths: ["**.yml", "**.yaml"]
   workflow_dispatch:
 
 jobs:
@@ -19,8 +17,8 @@ jobs:
       run:
         shell: sh
     outputs:
-      changed: ${{ steps.changes.outputs.files }}
-      composes: ${{ steps.changes.outputs.composes }}
+      yaml: ${{ steps.changes.outputs.yaml }}
+      deploy: ${{ steps.changes.outputs.deploy }}
     steps:
       - name: Install dependencies
         run: apk add --no-cache git yamllint
@@ -58,14 +56,14 @@ jobs:
         run: sh .gitea/scripts/detect-changes.sh
 
       - name: Lint YAML
-        if: steps.changes.outputs.files != ''
-        run: sh .gitea/scripts/lint-yaml.sh ${{ steps.changes.outputs.files }}
+        if: steps.changes.outputs.yaml != ''
+        run: sh .gitea/scripts/lint-yaml.sh ${{ steps.changes.outputs.yaml }}
 
-  # Writes the list of changed composes to the server (push/manual only, never on PRs)
-  publish:
-    name: Publish changed composes
+  # Copies the changed files to the server (push/manual only, never on PRs)
+  copy:
+    name: Copy files to server
     needs: validate
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && needs.validate.outputs.deploy != ''
     runs-on: ubuntu-latest
     container:
       image: alpine:3.22
@@ -76,7 +74,7 @@ jobs:
       - name: Install dependencies
         run: apk add --no-cache git openssh-client
 
-      # Same checkout as the validate job, but shallow: only the scripts are needed here
+      # Same checkout as the validate job, but shallow: the files of this commit are enough here
       - name: Checkout
         env:
           TOKEN: ${{ github.token }}
@@ -92,12 +90,12 @@ jobs:
           git checkout -q --detach FETCH_HEAD
           git config --unset http.extraHeader
 
-      - name: Write list to server
+      - name: Copy files
         env:
-          COMPOSES: ${{ needs.validate.outputs.composes }}
-          OUTPUT_FILE: ${{ vars.OUTPUT_FILE || '/opt/deploy/changed-composes.txt' }}
+          FILES: ${{ needs.validate.outputs.deploy }}
+          DEST_DIR: ${{ vars.DEST_DIR || '/opt' }}
           SSH_HOST: ${{ vars.SSH_HOST }}
           SSH_USER: ${{ vars.SSH_USER }}
           SSH_PORT: ${{ vars.SSH_PORT }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: sh .gitea/scripts/publish-changes.sh
+        run: sh .gitea/scripts/copy-files.sh
