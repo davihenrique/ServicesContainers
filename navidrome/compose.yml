@@ -1,4 +1,3 @@
-# Navidrome: music streaming server (library from Nextcloud)
 services:
   navidrome:
     image: docker.io/deluan/navidrome:latest
