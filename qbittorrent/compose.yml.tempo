@@ -16,3 +16,4 @@ services:
       - ./config:/config:z
       - ./incomplete:/downloads/incomplete:z
       - ./complete:/downloads/complete:z
+
