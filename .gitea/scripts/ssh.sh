@@ -68,3 +68,18 @@ else
   PODMAN="podman"
 fi
 echo "Podman: $PODMAN"
+
+# Shell functions prepended to the scripts run on the server.
+# foreign_containers DIR COMPOSE: prints the container_name entries of DIR/COMPOSE that belong
+# to a compose project from another folder, so one service never takes down another one
+# that happens to use the same container name. Containers without that label are not reported.
+REMOTE_LIB='
+foreign_containers() {
+  grep -E "^[[:space:]]*container_name:" "$1/$2" |
+    sed "s/.*container_name:[[:space:]]*//; s/[[:space:]]*#.*//" | tr -d "\"\047" |
+    while read -r name; do
+      owner=$($PODMAN inspect "$name" --format "{{index .Config.Labels \"com.docker.compose.project.working_dir\"}}" 2>/dev/null) || continue
+      if [ -n "$owner" ] && [ "$owner" != "$1" ]; then echo "$name (from $owner)"; fi
+    done
+}
+'

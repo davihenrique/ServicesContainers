@@ -24,11 +24,17 @@ if [ -z "$COMPOSES" ]; then
   exit 0
 fi
 
-remote "DEST_DIR='$DEST_DIR'; COMPOSES='$COMPOSES'; PODMAN='$PODMAN';"'
+remote "DEST_DIR='$DEST_DIR'; COMPOSES='$COMPOSES'; PODMAN='$PODMAN'; $REMOTE_LIB"'
 failed=""
 for file in $COMPOSES; do
   if [ ! -f "$DEST_DIR/$file" ]; then
     echo "== $file: not on the server, skipping"
+    continue
+  fi
+  foreign=$(foreign_containers "$DEST_DIR/${file%/*}" "${file##*/}")
+  if [ -n "$foreign" ]; then
+    echo "== $file: NOT stopping, container name used by another service: $foreign" >&2
+    failed="$failed $file"
     continue
   fi
   echo "== $file: stopping"

@@ -22,7 +22,7 @@ if [ -z "$SERVICES" ]; then
 fi
 echo "Services to restart: $SERVICES"
 
-remote "DEST_DIR='$DEST_DIR'; SERVICES='$SERVICES'; COMPOSE_NAMES='$COMPOSE_NAMES'; PODMAN='$PODMAN';"'
+remote "DEST_DIR='$DEST_DIR'; SERVICES='$SERVICES'; COMPOSE_NAMES='$COMPOSE_NAMES'; PODMAN='$PODMAN'; $REMOTE_LIB"'
 failed=""
 for service in $SERVICES; do
   compose=""
@@ -31,6 +31,12 @@ for service in $SERVICES; do
   done
   if [ -z "$compose" ]; then
     echo "== $service: no compose file, skipping"
+    continue
+  fi
+  foreign=$(foreign_containers "$DEST_DIR/$service" "$compose")
+  if [ -n "$foreign" ]; then
+    echo "== $service: NOT recreating, container name used by another service: $foreign" >&2
+    failed="$failed $service"
     continue
   fi
 
