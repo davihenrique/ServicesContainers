@@ -16,3 +16,4 @@ services:
       - ./data:/data:z
       - ./cache:/data/cache:z
       - "/srv/nextcloud/davi/files/Músicas:/music:ro"
+      
