@@ -1,0 +1,18 @@
+services:
+  qbittorrent:
+    image: docker.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: always
+    environment:
+      - PUID=33
+      - PGID=33
+      - TZ=America/Sao_Paulo
+      - WEBUI_PORT=8080
+    ports:
+      - "8080:8080"
+      - "6881:6881/tcp"
+      - "6881:6881/udp"
+    volumes:
+      - ./config:/config:z
+      - ./incomplete:/downloads/incomplete:z
+      - ./complete:/downloads/complete:z

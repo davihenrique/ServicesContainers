@@ -1,0 +1,16 @@
+services:
+  onlyoffice:
+    image: docker.io/onlyoffice/documentserver:latest
+    container_name: onlyoffice
+    restart: always
+    ports:
+      - "8082:80"
+    environment:
+      - JWT_ENABLED=true
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_HEADER=Authorization
+    volumes:
+      - ./data:/var/www/onlyoffice/Data:z
+      - ./log:/var/log/onlyoffice:z
+      - ./lib:/var/lib/onlyoffice:z
+      - ./db:/var/lib/postgresql:z

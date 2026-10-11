@@ -1,0 +1,22 @@
+services:
+  jellyfin:
+    image: docker.io/jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: always
+    ports:
+      - "8096:8096"
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    mem_limit: 4g
+    mem_reservation: 2g
+    cpu_shares: 2048
+    devices:
+      - /dev/dri:/dev/dri
+    tmpfs:
+      - /cache/transcodes:rw,size=2g
+    volumes:
+      - ./config:/config:z
+      - ./cache:/cache:z
+      - /srv/nextcloud/davi/files/Filmes:/media/filmes:ro
+      - /srv/nextcloud/davi/files/Videos/X:/media/x:ro
