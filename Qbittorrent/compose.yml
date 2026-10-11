@@ -1,5 +1,6 @@
 services:
   qbittorrent:
+  
     image: docker.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     restart: always

@@ -1,4 +1,5 @@
 services:
+
   navidrome:
     image: docker.io/deluan/navidrome:latest
     container_name: navidrome
