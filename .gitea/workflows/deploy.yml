@@ -79,6 +79,7 @@ jobs:
       SSH_USER: ${{ vars.SSH_USER }}
       SSH_PORT: ${{ vars.SSH_PORT }}
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      PODMAN_SUDO: ${{ vars.PODMAN_SUDO }}
     steps:
       - name: Install dependencies
         run: apk add --no-cache git openssh-client

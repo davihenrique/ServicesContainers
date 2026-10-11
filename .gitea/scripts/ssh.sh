@@ -10,6 +10,7 @@
 #   SSH_USER         user
 #   SSH_PORT         port (default: 22)
 #   SSH_PRIVATE_KEY  private key
+#   PODMAN_SUDO      "true" to run podman as root through sudo (default: rootless)
 
 : "${DEST_DIR:?DEST_DIR is not set}"
 : "${SSH_HOST:?SSH_HOST is not set}"
@@ -58,3 +59,12 @@ services_of() {
 
 # Compose file names, in the order podman compose looks for them
 COMPOSE_NAMES="compose.yaml compose.yml docker-compose.yaml docker-compose.yml"
+
+# Podman command run on the server: rootful through sudo when PODMAN_SUDO=true, rootless otherwise.
+# sudo -n fails right away instead of waiting for a password.
+if [ "$PODMAN_SUDO" = "true" ]; then
+  PODMAN="sudo -n podman"
+else
+  PODMAN="podman"
+fi
+echo "Podman: $PODMAN"

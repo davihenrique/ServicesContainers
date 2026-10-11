@@ -6,7 +6,7 @@
 # Input (env):
 #   DELETE    space-separated files to remove, relative to the repo root
 #   DEST_DIR  destination folder on the server
-#   SSH_*     see ssh.sh
+#   SSH_*, PODMAN_SUDO  see ssh.sh
 set -e
 
 . "$(dirname "$0")/ssh.sh"
@@ -24,7 +24,7 @@ if [ -z "$COMPOSES" ]; then
   exit 0
 fi
 
-remote "DEST_DIR='$DEST_DIR'; COMPOSES='$COMPOSES';"'
+remote "DEST_DIR='$DEST_DIR'; COMPOSES='$COMPOSES'; PODMAN='$PODMAN';"'
 failed=""
 for file in $COMPOSES; do
   if [ ! -f "$DEST_DIR/$file" ]; then
@@ -32,7 +32,7 @@ for file in $COMPOSES; do
     continue
   fi
   echo "== $file: stopping"
-  ( cd "$DEST_DIR/${file%/*}" && podman compose -f "${file##*/}" down ) || failed="$failed $file"
+  ( cd "$DEST_DIR/${file%/*}" && $PODMAN compose -f "${file##*/}" down ) || failed="$failed $file"
 done
 
 if [ -n "$failed" ]; then

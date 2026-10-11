@@ -8,7 +8,7 @@
 #   FILES     space-separated changed files, relative to the repo root
 #   DELETE    space-separated deleted files, relative to the repo root
 #   DEST_DIR  destination folder on the server
-#   SSH_*     see ssh.sh
+#   SSH_*, PODMAN_SUDO  see ssh.sh
 set -e
 
 . "$(dirname "$0")/ssh.sh"
@@ -22,7 +22,7 @@ if [ -z "$SERVICES" ]; then
 fi
 echo "Services to restart: $SERVICES"
 
-remote "DEST_DIR='$DEST_DIR'; SERVICES='$SERVICES'; COMPOSE_NAMES='$COMPOSE_NAMES';"'
+remote "DEST_DIR='$DEST_DIR'; SERVICES='$SERVICES'; COMPOSE_NAMES='$COMPOSE_NAMES'; PODMAN='$PODMAN';"'
 failed=""
 for service in $SERVICES; do
   compose=""
@@ -37,8 +37,8 @@ for service in $SERVICES; do
   echo "== $service: recreating ($compose)"
   (
     cd "$DEST_DIR/$service" &&
-      podman compose -f "$compose" down --remove-orphans &&
-      podman compose -f "$compose" up -d --build
+      $PODMAN compose -f "$compose" down --remove-orphans &&
+      $PODMAN compose -f "$compose" up -d --build
   ) || failed="$failed $service"
 done
 
