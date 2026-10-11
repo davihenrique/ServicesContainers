@@ -19,11 +19,27 @@ fi
 . "$(dirname "$0")/ssh.sh"
 
 # Runs on the server.
+# Check: every target folder (or its closest existing parent) must be writable, so the sync
+# never stops halfway through.
 # Copy: unpacks the files into a temp folder, then moves each one into place; each file is
 # written next to its target and renamed, so it is never left half-written.
 # Delete: removes each file, then its parent folders while they are empty.
 REMOTE_SCRIPT='
 set -e
+
+denied=""
+for file in $FILES $DELETE; do
+  dir="$DEST_DIR/$(dirname "$file")"
+  while [ ! -e "$dir" ]; do dir=$(dirname "$dir"); done
+  if [ ! -w "$dir" ]; then
+    case " $denied " in *" $dir "*) ;; *) denied="$denied $dir" ;; esac
+  fi
+done
+if [ -n "$denied" ]; then
+  echo "No write permission for $(id -un) in:$denied" >&2
+  echo "Nothing was changed." >&2
+  exit 1
+fi
 
 if [ -n "$FILES" ]; then
   STAGE=$(mktemp -d)
