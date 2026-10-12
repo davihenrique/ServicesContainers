@@ -1,3 +1,4 @@
+# onlyoffice
 services:
   onlyoffice:
     image: docker.io/onlyoffice/documentserver:latest
