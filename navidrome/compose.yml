@@ -1,3 +1,4 @@
+# Navidrome
 services:
   navidrome:
     image: docker.io/deluan/navidrome:latest
