@@ -4,7 +4,7 @@
 # command on the server (stdin is forwarded).
 #
 # Input (env):
-#   FILES / DELETE / REMOVED  space-separated repo paths (checked for safety)
+#   FILES / DELETE / REMOVED / ENV_CHANGED  space-separated repo paths (checked for safety)
 #   DEST_DIR         destination folder on the server
 #   SSH_HOST         server
 #   SSH_USER         user
@@ -18,7 +18,7 @@
 : "${SSH_PRIVATE_KEY:?SSH_PRIVATE_KEY is not set}"
 
 # Only plain relative paths go to the server (no "..", no absolute paths, no odd characters)
-for file in $FILES $DELETE $REMOVED; do
+for file in $FILES $DELETE $REMOVED $ENV_CHANGED; do
   case "$file" in
     /* | *..* | *[!A-Za-z0-9._/-]*)
       echo "Unsafe path, aborting: $file" >&2

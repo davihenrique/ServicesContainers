@@ -59,11 +59,13 @@ jobs:
         if: steps.changes.outputs.yaml != ''
         run: sh .gitea/scripts/lint-yaml.sh ${{ steps.changes.outputs.yaml }}
 
-  # Syncs the files with the server and recreates the changed services (push/manual only, never on PRs)
+  # Syncs the files and the ENV_* secrets with the server and recreates the changed services
+  # (push/manual only, never on PRs). Runs on every push, even with no service file changed,
+  # so a changed secret is applied by the next push.
   deploy:
     name: Deploy to server
     needs: validate
-    if: github.event_name != 'pull_request' && (needs.validate.outputs.deploy != '' || needs.validate.outputs.delete != '')
+    if: github.event_name != 'pull_request'
     # Runner label "fedora" = registry.fedoraproject.org/fedora-minimal:44 (no node: shell only, no uses:)
     runs-on: fedora
     defaults:
@@ -106,5 +108,15 @@ jobs:
       - name: Sync files
         run: sh .gitea/scripts/sync-files.sh
 
+      # One ENV_<SERVICE> secret per service, holding its whole .env (see sync-env.sh).
+      # Secrets are exposed to this step only: add a line here for each new service.
+      - name: Write .env files
+        id: env
+        env:
+          ENV_NAVIDROME: ${{ secrets.ENV_NAVIDROME }}
+        run: sh .gitea/scripts/sync-env.sh
+
       - name: Restart changed services
+        env:
+          ENV_CHANGED: ${{ steps.env.outputs.changed }}
         run: sh .gitea/scripts/restart-changed.sh

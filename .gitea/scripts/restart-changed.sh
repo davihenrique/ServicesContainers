@@ -1,12 +1,13 @@
 #!/bin/sh
-# Recreates the containers of every service with changed or deleted files:
-# podman compose down, then up. Services without a compose file left on the server
+# Recreates the containers of every service with changed or deleted files, or a rewritten
+# .env: podman compose down, then up. Services without a compose file left on the server
 # (removed services) are skipped; stop-removed.sh already stopped them.
 # A failing service does not stop the others; the step fails at the end.
 #
 # Input (env):
 #   FILES     space-separated changed files, relative to the repo root
 #   DELETE    space-separated deleted files, relative to the repo root
+#   ENV_CHANGED  space-separated services whose .env was rewritten (sync-env.sh)
 #   DEST_DIR  destination folder on the server
 #   SSH_*, PODMAN_SUDO  see ssh.sh
 set -e
@@ -14,7 +15,7 @@ set -e
 . "$(dirname "$0")/ssh.sh"
 
 # shellcheck disable=SC2086 # space-separated lists on purpose
-SERVICES=$(services_of $FILES $DELETE | tr '\n' ' ')
+SERVICES=$(services_of $FILES $DELETE $ENV_CHANGED | tr '\n' ' ')
 
 if [ -z "$SERVICES" ]; then
   echo "No service changed - nothing to restart"
