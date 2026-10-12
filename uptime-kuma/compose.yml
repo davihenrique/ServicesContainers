@@ -9,6 +9,10 @@ services:
     # usado pelos monitores do tipo "Docker Container".
     security_opt:
       - label=disable
+    # O /usr/bin/ping da imagem tem a file capability cap_net_raw: sem NET_RAW no container
+    # (o podman não inclui por padrão) o kernel recusa executá-lo e os monitores de ping falham.
+    cap_add:
+      - NET_RAW
     volumes:
       - ./data:/app/data:z
       # Socket do podman (rootful) exposto como socket do Docker, para os monitores de container.
