@@ -30,8 +30,9 @@ for d in incomplete complete; do
 done
 chown -R "$QBT_UID:$QBT_GID" downloads
 
-echo ">> custom-cont-init.d (a imagem linuxserver só executa scripts do root)"
-chown -R root:root custom-cont-init.d
+echo ">> custom-cont-init.d (a imagem linuxserver só executa scripts com permissão de execução)"
+# Mesmo dono da pasta do serviço, para o deploy do Gitea (via SSH, sem root) conseguir atualizar
+chown -R --reference=. custom-cont-init.d
 chmod 755 custom-cont-init.d custom-cont-init.d/*.sh
 
 echo ">> mover-torrents.sh e units do systemd"
