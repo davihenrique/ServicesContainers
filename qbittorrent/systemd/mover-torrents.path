@@ -1,0 +1,11 @@
+[Unit]
+Description=Dispara o mover-torrents quando o qBittorrent termina um download
+
+[Path]
+# O qBittorrent escreve neste arquivo ao concluir cada torrent
+# ("Executar programa externo ao concluir o torrent").
+PathChanged=/opt/qbittorrent/config/torrent-finished
+Unit=mover-torrents.service
+
+[Install]
+WantedBy=multi-user.target

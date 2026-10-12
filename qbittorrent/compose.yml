@@ -14,6 +14,9 @@ services:
       - "6881:6881/udp"
     volumes:
       - ./config:/config:z
-      - ./incomplete:/downloads/incomplete:z
-      - ./complete:/downloads/complete:z
-
+      # Um único volume para incomplete/ e complete/: assim a mudança de pasta
+      # ao terminar o download é um rename atômico (com dois volumes separados
+      # o qBittorrent precisa copiar + apagar, e o script poderia pegar arquivo pela metade).
+      - ./downloads:/downloads:z
+      # Scripts executados a cada start: configuram pastas e o hook de torrent concluído.
+      - ./custom-cont-init.d:/custom-cont-init.d:ro,z
