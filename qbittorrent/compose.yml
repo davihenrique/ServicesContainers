@@ -8,6 +8,10 @@ services:
       - PGID=33
       - TZ=America/Sao_Paulo
       - WEBUI_PORT=8080
+      # Usuário e senha do WebUI, aplicados pelo custom-cont-init.d. Vêm do .env, gerado
+      # pelo deploy a partir dos secrets QBT_WEBUI_USERNAME e QBT_WEBUI_PASSWORD do Gitea.
+      - QBT_WEBUI_USERNAME=${QBT_WEBUI_USERNAME:-}
+      - QBT_WEBUI_PASSWORD=${QBT_WEBUI_PASSWORD:-}
     ports:
       - "8080:8080"
       - "6881:6881/tcp"

@@ -116,6 +116,9 @@ jobs:
           ENV_NAVIDROME: |
             LASTFM_APIKEY=${{ secrets.LASTFM_APIKEY }}
             LASTFM_SECRET=${{ secrets.LASTFM_SECRET }}
+          ENV_QBITTORRENT: |
+            QBT_WEBUI_USERNAME=${{ secrets.QBT_WEBUI_USERNAME }}
+            QBT_WEBUI_PASSWORD=${{ secrets.QBT_WEBUI_PASSWORD }}
         run: sh .gitea/scripts/sync-env.sh
 
       - name: Restart changed services
