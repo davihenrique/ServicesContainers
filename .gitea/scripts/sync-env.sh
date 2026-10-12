@@ -1,7 +1,9 @@
 #!/bin/sh
-# Writes the .env file of each service on the server from its ENV_<SERVICE> secret.
-# The secret holds the whole .env content (KEY=value lines); the variable name is the
-# service folder in upper case, with "-" as "_" (e.g. uptime-kuma -> ENV_UPTIME_KUMA).
+# Writes the .env file of each service on the server from its ENV_<SERVICE> variable.
+# The variable holds the whole .env content (KEY=value lines, built from the secrets in
+# deploy.yml); its name is the service folder in upper case, with "-" as "_"
+# (e.g. uptime-kuma -> ENV_UPTIME_KUMA).
+# A KEY= line with no value means a missing secret: the step fails before writing anything.
 # Services without the variable are left alone (a .env created by hand stays as it is).
 # Only files whose content changed are rewritten; the contents are never printed.
 #
@@ -15,6 +17,7 @@ set -e
 
 STAGE=$(mktemp -d)
 SERVICES=""
+MISSING=""
 for dir in */; do
   service=${dir%/}
   var="ENV_$(printf '%s' "$service" | tr 'a-z-' 'A-Z_')"
@@ -24,8 +27,17 @@ for dir in */; do
   mkdir -p "$STAGE/$service"
   # Strip CRs in case the secret was pasted from Windows
   printf '%s\n' "$value" | tr -d '\r' > "$STAGE/$service/.env"
+  for key in $(sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=[[:space:]]*$/\1/p' "$STAGE/$service/.env"); do
+    MISSING="$MISSING $service:$key"
+  done
   SERVICES="$SERVICES $service"
 done
+
+if [ -n "$MISSING" ]; then
+  echo "Empty values (secret missing or empty in Gitea), nothing was written:$MISSING" >&2
+  rm -rf "$STAGE"
+  exit 1
+fi
 
 if [ -z "$SERVICES" ]; then
   echo "No ENV_* secret set - nothing to write"

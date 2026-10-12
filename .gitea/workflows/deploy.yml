@@ -108,12 +108,14 @@ jobs:
       - name: Sync files
         run: sh .gitea/scripts/sync-files.sh
 
-      # One ENV_<SERVICE> secret per service, holding its whole .env (see sync-env.sh).
-      # Secrets are exposed to this step only: add a line here for each new service.
+      # ENV_<SERVICE> = the whole .env of each service, built from the secrets (see sync-env.sh).
+      # Secrets are exposed to this step only: add a block here for each new service.
       - name: Write .env files
         id: env
         env:
-          ENV_NAVIDROME: ${{ secrets.ENV_NAVIDROME }}
+          ENV_NAVIDROME: |
+            LASTFM_APIKEY=${{ secrets.LASTFM_APIKEY }}
+            LASTFM_SECRET=${{ secrets.LASTFM_SECRET }}
         run: sh .gitea/scripts/sync-env.sh
 
       - name: Restart changed services
