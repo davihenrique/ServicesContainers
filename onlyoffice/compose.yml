@@ -1,4 +1,3 @@
-# onlyoffice
 services:
   onlyoffice:
     image: docker.io/onlyoffice/documentserver:latest
@@ -8,7 +7,7 @@ services:
       - "8082:80"
     environment:
       - JWT_ENABLED=true
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET=cca697ad3b1abd90802d25d9395b8cabb01ffa0fe9128c01701df58e4a7c5097
       - JWT_HEADER=Authorization
     volumes:
       - ./data:/var/www/onlyoffice/Data:z
