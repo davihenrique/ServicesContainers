@@ -1,0 +1,16 @@
+services:
+  uptime-kuma:
+    image: docker.io/louislam/uptime-kuma:next
+    container_name: uptime-kuma
+    restart: always
+    ports:
+      - "3001:3001"
+    # Sem isso o SELinux (container_t) bloqueia o acesso ao socket do podman do host,
+    # usado pelos monitores do tipo "Docker Container".
+    security_opt:
+      - label=disable
+    volumes:
+      - ./data:/app/data:z
+      # Socket do podman (rootful) exposto como socket do Docker, para os monitores de container.
+      # Requer no host: systemctl enable --now podman.socket
+      - /run/podman/podman.sock:/var/run/docker.sock
