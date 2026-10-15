@@ -1,5 +1,5 @@
 [Unit]
-Description=Move downloads concluídos do qBittorrent para o Nextcloud
+Description=Copia downloads concluídos do qBittorrent para o Nextcloud
 
 [Service]
 Type=oneshot
